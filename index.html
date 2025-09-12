@@ -32,50 +32,29 @@
       box-shadow: var(--shadow);
       padding: 22px 22px 18px;
     }
-    h1{
-      margin: 6px 0 18px; font-size: clamp(1.25rem, 1rem + 1.5vw, 1.9rem);
-      letter-spacing:.2px;
-    }
+    h1{ margin: 6px 0 18px; font-size: clamp(1.25rem, 1rem + 1.5vw, 1.9rem); letter-spacing:.2px; }
     .row{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
     .row + .row{ margin-top: 14px; }
 
     .group{ flex: 1 1 280px; min-width: 260px; }
     .group label.block{ display:block; font-size:.86rem; color: var(--muted); margin-bottom: 6px; }
 
-    .field{
-      display:flex; align-items:center; gap:10px; padding: 10px 12px; border-radius: 12px;
-      background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
-    }
+    .field{ display:flex; align-items:center; gap:10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); }
     .field:focus-within{ outline: 3px solid var(--ring); border-color: transparent; }
 
-    input[type="number"], input[type="text"]{
-      width:100%; background: transparent; border:0; color: var(--text);
-      font-size: 1rem; outline: none;
-    }
+    input[type="number"], input[type="text"]{ width:100%; background: transparent; border:0; color: var(--text); font-size: 1rem; outline: none; }
     .prefix, .suffix{ color:var(--muted); }
 
     .options{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .chip{
-      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius: 999px;
-      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.10);
-      cursor:pointer; user-select:none; font-size:.95rem; color: var(--text);
-    }
+    .chip{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius: 999px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.10); cursor:pointer; user-select:none; font-size:.95rem; color: var(--text); }
     .chip input{ appearance:none; width:14px; height:14px; border-radius:50%; border:2px solid var(--muted); display:inline-block; position:relative; }
     .chip input:checked{ border-color: var(--accent); box-shadow: inset 0 0 0 4px var(--accent); }
 
     .checks{ display:flex; gap:12px; flex-wrap:wrap; }
-    .check{
-      display:inline-flex; align-items:center; gap:10px; padding:9px 12px; border-radius: 12px; cursor:pointer;
-      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.10);
-      min-width: 220px;
-    }
+    .check{ display:inline-flex; align-items:center; gap:10px; padding:9px 12px; border-radius: 12px; cursor:pointer; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.10); min-width: 220px; }
     .check input{ width:18px; height:18px; accent-color: var(--accent); }
 
-    .result{
-      margin-top: 18px; padding: 16px; border-radius: 14px; border:1px solid rgba(255,255,255,.10);
-      background: linear-gradient(180deg, rgba(161,255,207,.10), rgba(110,168,255,.08));
-      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
-    }
+    .result{ margin-top: 18px; padding: 16px; border-radius: 14px; border:1px solid rgba(255,255,255,.10); background: linear-gradient(180deg, rgba(161,255,207,.10), rgba(110,168,255,.08)); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
     .result .label{ color: var(--muted); font-size:.95rem; }
     .result .value{ font-weight:700; font-size: clamp(1.25rem, 1rem + 2.2vw, 2.2rem); letter-spacing:.3px; }
 
@@ -104,6 +83,7 @@
             <input id="quantumFee" type="number" min="0" max="100" step="1" value="25" aria-label="Quantum Fee percent" />
             <span class="suffix">%</span>
           </div>
+          <div class="hint">Applies as a multiplier to the commission (e.g., 25% = 0.25×).</div>
         </div>
         <div>
           <label id="share-label" class="block">Share</label>
@@ -133,10 +113,20 @@
       <div class="group" style="flex-basis:100%">
         <label id="roles-label" class="block">Roles</label>
         <div class="checks" aria-describedby="weights-note">
-          <label class="check"><input id="recruiter" type="checkbox" /> Recruiter (50%)</label>
+          <div class="check" style="display:flex; align-items:center; gap:10px; min-width: 320px;">
+            <label style="display:flex; align-items:center; gap:10px;">
+              <input id="recruiter" type="checkbox" />
+              <span>Recruiter (<span id="recruiterPct">50%</span>)</span>
+            </label>
+            <label class="split" style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:.9rem; color: var(--muted);">
+              <input id="recruiterSplit" type="checkbox" />
+              <span>(Split)</span>
+            </label>
+          </div>
           <label class="check"><input id="accountManager" type="checkbox" /> Account Manager (25%)</label>
           <label class="check"><input id="businessDev" type="checkbox" /> Business Development (25%)</label>
         </div>
+        <div id="weights-note" class="hint">Commission = (Quantum Fee) × salary × share × (0.5×Recruiter + 0.25×Account Manager + 0.25×Business Development)</div>
       </div>
     </section>
 
@@ -156,6 +146,8 @@
     const salaryError = document.getElementById('salaryError');
     const shareRadios = Array.from(document.querySelectorAll('input[name="share"]'));
     const recruiter = document.getElementById('recruiter');
+    const recruiterSplit = document.getElementById('recruiterSplit');
+    const recruiterPctEl = document.getElementById('recruiterPct');
     const accountManager = document.getElementById('accountManager');
     const businessDev = document.getElementById('businessDev');
     const commissionEl = document.getElementById('commission');
@@ -193,6 +185,12 @@
       }
     }
 
+    function updateSplitEnabled(){
+      const enabled = recruiter.checked;
+      recruiterSplit.disabled = !enabled;
+      recruiterSplit.parentElement.style.opacity = enabled ? 1 : 0.6;
+    }
+
     function compute(){
       const salary = getSalary();
       const share = getShare();
@@ -209,35 +207,35 @@
         salaryError.textContent = '';
       }
 
-      const r = recruiter.checked ? 1 : 0;
+      const rActive = recruiter.checked;
       const a = accountManager.checked ? 1 : 0;
       const b = businessDev.checked ? 1 : 0;
 
-      const weight = 0.5*r + 0.25*a + 0.25*b;
+      const rWeight = rActive ? (recruiterSplit.checked ? 0.25 : 0.5) : 0;
+      recruiterPctEl.textContent = `${Math.round(rWeight*100)}%`;
+
+      const weight = rWeight + 0.25*a + 0.25*b;
       const commission = fee * salary * share * weight;
 
       commissionEl.textContent = fmtCurrency(commission);
 
       const pieces = [];
-      if (r) pieces.push('Recruiter 50%');
+      if (rActive) pieces.push(`Recruiter ${Math.round(rWeight*100)}%`);
       if (a) pieces.push('Account Manager 25%');
       if (b) pieces.push('Business Development 25%');
       breakdownEl.textContent = pieces.length ? `Weights active: ${pieces.join(' · ')}` : '';
     }
 
-    [recruiter, accountManager, businessDev, quantumFeeInput, ...shareRadios].forEach(el =>{
-      el.addEventListener('input', compute);
-      el.addEventListener('change', compute);
+    [recruiter, recruiterSplit, accountManager, businessDev, quantumFeeInput, ...shareRadios].forEach(el =>{
+      el.addEventListener('input', () => { updateSplitEnabled(); compute(); });
+      el.addEventListener('change', () => { updateSplitEnabled(); compute(); });
     });
 
     salaryInput.addEventListener('input', compute);
-    salaryInput.addEventListener('blur', () => {
-      formatSalaryInput();
-      compute();
-    });
+    salaryInput.addEventListener('blur', () => { formatSalaryInput(); compute(); });
 
+    updateSplitEnabled();
     compute();
   </script>
 </body>
 </html>
-
