@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Commission Calculator</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#111831;
+      --muted:#8ea0bf;
+      --text:#e6ecff;
+      --accent:#6ea8ff;
+      --accent-2:#a1ffcf;
+      --ring: rgba(110,168,255,.55);
+      --shadow: 0 10px 25px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.25);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 1200px at 15% 0%, #162448 0%, transparent 60%), var(--bg);
+      color: var(--text);
+      display:grid; place-items:center; padding: 28px;
+    }
+    .card{
+      width: min(940px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00)), var(--card);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px 22px 18px;
+    }
+    h1{
+      margin: 6px 0 18px; font-size: clamp(1.25rem, 1rem + 1.5vw, 1.9rem);
+      letter-spacing:.2px;
+    }
+    .row{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
+    .row + .row{ margin-top: 14px; }
+
+    .group{ flex: 1 1 280px; min-width: 260px; }
+    .group label.block{ display:block; font-size:.86rem; color: var(--muted); margin-bottom: 6px; }
+
+    .field{
+      display:flex; align-items:center; gap:10px; padding: 10px 12px; border-radius: 12px;
+      background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+    }
+    .field:focus-within{ outline: 3px solid var(--ring); border-color: transparent; }
+
+    input[type="number"], input[type="text"]{
+      width:100%; background: transparent; border:0; color: var(--text);
+      font-size: 1rem; outline: none;
+    }
+    .prefix, .suffix{ color:var(--muted); }
+
+    .options{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius: 999px;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.10);
+      cursor:pointer; user-select:none; font-size:.95rem; color: var(--text);
+    }
+    .chip input{ appearance:none; width:14px; height:14px; border-radius:50%; border:2px solid var(--muted); display:inline-block; position:relative; }
+    .chip input:checked{ border-color: var(--accent); box-shadow: inset 0 0 0 4px var(--accent); }
+
+    .checks{ display:flex; gap:12px; flex-wrap:wrap; }
+    .check{
+      display:inline-flex; align-items:center; gap:10px; padding:9px 12px; border-radius: 12px; cursor:pointer;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.10);
+      min-width: 220px;
+    }
+    .check input{ width:18px; height:18px; accent-color: var(--accent); }
+
+    .result{
+      margin-top: 18px; padding: 16px; border-radius: 14px; border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(161,255,207,.10), rgba(110,168,255,.08));
+      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+    }
+    .result .label{ color: var(--muted); font-size:.95rem; }
+    .result .value{ font-weight:700; font-size: clamp(1.25rem, 1rem + 2.2vw, 2.2rem); letter-spacing:.3px; }
+
+    .hint{ font-size:.85rem; color:var(--muted); margin-top: 10px; }
+    .spacer{ flex: 1 1 auto; }
+    .badge{ font-size:.8rem; color:#0b1020; background: var(--accent-2); border-radius: 999px; padding:6px 10px; font-weight:600; }
+
+    #quantumFee { max-width: 80px; text-align:right; }
+
+    @media (max-width: 480px) {
+      .group { min-width: 100%; }
+      .check { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" aria-labelledby="title">
+    <h1 id="title">Commission Calculator</h1>
+
+    <!-- Row 1: Left column Quantum Fee + Share, Right column Salary -->
+    <section class="row">
+      <div class="group" style="flex:2; display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <label for="quantumFee" class="block">Quantum Fee</label>
+          <div class="field" style="max-width:120px;">
+            <input id="quantumFee" type="number" min="0" max="100" step="1" value="25" aria-label="Quantum Fee percent" />
+            <span class="suffix">%</span>
+          </div>
+        </div>
+        <div>
+          <label id="share-label" class="block">Share</label>
+          <div class="options" role="radiogroup" aria-labelledby="share-label">
+            <label class="chip">
+              <input type="radio" name="share" value="0.40" aria-label="40 percent" /> 40%
+            </label>
+            <label class="chip">
+              <input type="radio" name="share" value="0.45" aria-label="45 percent" checked /> 45%
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="group" style="flex:1">
+        <label for="salary" class="block">Candidate Salary (USD)</label>
+        <div class="field">
+          <span class="prefix">$</span>
+          <input id="salary" type="text" inputmode="decimal" placeholder="Enter salary e.g. 120,000" />
+        </div>
+        <div id="salaryError" class="hint" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- Roles -->
+    <section class="row" aria-labelledby="roles-label">
+      <div class="group" style="flex-basis:100%">
+        <label id="roles-label" class="block">Roles</label>
+        <div class="checks" aria-describedby="weights-note">
+          <label class="check"><input id="recruiter" type="checkbox" /> Recruiter (50%)</label>
+          <label class="check"><input id="accountManager" type="checkbox" /> Account Manager (25%)</label>
+          <label class="check"><input id="businessDev" type="checkbox" /> Business Development (25%)</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Result -->
+    <section class="result" aria-live="polite">
+      <div class="label">Commission</div>
+      <div class="spacer"></div>
+      <div id="commission" class="value">$0</div>
+      <div id="breakdown" class="hint"></div>
+      <div class="badge" id="shareBadge">Share: 45%</div>
+      <div class="badge" id="feeBadge">Quantum Fee: 25%</div>
+    </section>
+  </main>
+
+  <script>
+    const salaryInput = document.getElementById('salary');
+    const salaryError = document.getElementById('salaryError');
+    const shareRadios = Array.from(document.querySelectorAll('input[name="share"]'));
+    const recruiter = document.getElementById('recruiter');
+    const accountManager = document.getElementById('accountManager');
+    const businessDev = document.getElementById('businessDev');
+    const commissionEl = document.getElementById('commission');
+    const breakdownEl = document.getElementById('breakdown');
+    const shareBadge = document.getElementById('shareBadge');
+    const quantumFeeInput = document.getElementById('quantumFee');
+    const feeBadge = document.getElementById('feeBadge');
+
+    const fmtCurrency = (n) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0);
+    const fmtNumber = (n) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n || 0);
+
+    function getShare(){
+      const sel = shareRadios.find(r => r.checked);
+      return sel ? parseFloat(sel.value) : 0.45;
+    }
+
+    function getSalary(){
+      const raw = salaryInput.value.replace(/,/g, '').trim();
+      if(raw === '') return 0;
+      const n = Number(raw);
+      return Number.isFinite(n) && n >= 0 ? n : NaN;
+    }
+
+    function getQuantumFee(){
+      const n = Number(quantumFeeInput.value);
+      if (!Number.isFinite(n) || n < 0) return 0;
+      if (n > 100) return 1;
+      return n / 100;
+    }
+
+    function formatSalaryInput(){
+      const salary = getSalary();
+      if (!Number.isNaN(salary)) {
+        salaryInput.value = fmtNumber(salary);
+      }
+    }
+
+    function compute(){
+      const salary = getSalary();
+      const share = getShare();
+      const fee = getQuantumFee();
+      shareBadge.textContent = `Share: ${Math.round(share*100)}%`;
+      feeBadge.textContent = `Quantum Fee: ${Math.round(fee*100)}%`;
+
+      if (Number.isNaN(salary)){
+        salaryError.textContent = 'Please enter a valid non-negative number.';
+        commissionEl.textContent = '$0';
+        breakdownEl.textContent = '';
+        return;
+      } else {
+        salaryError.textContent = '';
+      }
+
+      const r = recruiter.checked ? 1 : 0;
+      const a = accountManager.checked ? 1 : 0;
+      const b = businessDev.checked ? 1 : 0;
+
+      const weight = 0.5*r + 0.25*a + 0.25*b;
+      const commission = fee * salary * share * weight;
+
+      commissionEl.textContent = fmtCurrency(commission);
+
+      const pieces = [];
+      if (r) pieces.push('Recruiter 50%');
+      if (a) pieces.push('Account Manager 25%');
+      if (b) pieces.push('Business Development 25%');
+      breakdownEl.textContent = pieces.length ? `Weights active: ${pieces.join(' · ')}` : '';
+    }
+
+    [recruiter, accountManager, businessDev, quantumFeeInput, ...shareRadios].forEach(el =>{
+      el.addEventListener('input', compute);
+      el.addEventListener('change', compute);
+    });
+
+    salaryInput.addEventListener('input', compute);
+    salaryInput.addEventListener('blur', () => {
+      formatSalaryInput();
+      compute();
+    });
+
+    compute();
+  </script>
+</body>
+</html>
+
