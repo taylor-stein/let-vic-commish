@@ -83,10 +83,9 @@
             <input id="quantumFee" type="number" min="0" max="100" step="1" value="25" aria-label="Quantum Fee percent" />
             <span class="suffix">%</span>
           </div>
-          <div class="hint">Applies as a multiplier to the commission (e.g., 25% = 0.25×).</div>
         </div>
         <div>
-          <label id="share-label" class="block">Share</label>
+          <label id="share-label" class="block">Commission %</label>
           <div class="options" role="radiogroup" aria-labelledby="share-label">
             <label class="chip">
               <input type="radio" name="share" value="0.40" aria-label="40 percent" /> 40%
@@ -126,7 +125,6 @@
           <label class="check"><input id="accountManager" type="checkbox" /> Account Manager (25%)</label>
           <label class="check"><input id="businessDev" type="checkbox" /> Business Development (25%)</label>
         </div>
-        <div id="weights-note" class="hint">Commission = (Quantum Fee) × salary × share × (0.5×Recruiter + 0.25×Account Manager + 0.25×Business Development)</div>
       </div>
     </section>
 
