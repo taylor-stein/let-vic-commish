@@ -88,13 +88,13 @@
           <label id="share-label" class="block">Commission %</label>
           <div class="options" role="radiogroup" aria-labelledby="share-label">
             <label class="chip">
-              <input type="radio" name="share" value="0.35" aria-label="35 percent" /> 35%
+              <input type="radio" name="share" value="0.35" aria-label="35 percent Senior" /> 35% – Senior
             </label>
             <label class="chip">
-              <input type="radio" name="share" value="0.40" aria-label="40 percent" /> 40%
+              <input type="radio" name="share" value="0.40" aria-label="40 percent Principal Director" /> 40% – Principal - Director
             </label>
             <label class="chip">
-              <input type="radio" name="share" value="0.45" aria-label="45 percent" checked /> 45%
+              <input type="radio" name="share" value="0.45" aria-label="45 percent Partner" checked /> 45% – Partner
             </label>
           </div>
         </div>
@@ -125,8 +125,26 @@
               <span>(Split)</span>
             </label>
           </div>
-          <label class="check"><input id="accountManager" type="checkbox" /> Account Manager (25%)</label>
-          <label class="check"><input id="businessDev" type="checkbox" /> Business Development (25%)</label>
+          <div class="check" style="display:flex; align-items:center; gap:10px; min-width: 320px;">
+            <label style="display:flex; align-items:center; gap:10px;">
+              <input id="accountManager" type="checkbox" />
+              <span>Account Manager (<span id="accountManagerPct">25%</span>)</span>
+            </label>
+            <label class="split" style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:.9rem; color: var(--muted);">
+              <input id="accountManagerSplit" type="checkbox" />
+              <span>(Split)</span>
+            </label>
+          </div>
+          <div class="check" style="display:flex; align-items:center; gap:10px; min-width: 320px;">
+            <label style="display:flex; align-items:center; gap:10px;">
+              <input id="businessDev" type="checkbox" />
+              <span>Business Development (<span id="businessDevPct">25%</span>)</span>
+            </label>
+            <label class="split" style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:.9rem; color: var(--muted);">
+              <input id="businessDevSplit" type="checkbox" />
+              <span>(Split)</span>
+            </label>
+          </div>
         </div>
       </div>
     </section>
@@ -150,7 +168,11 @@
     const recruiterSplit = document.getElementById('recruiterSplit');
     const recruiterPctEl = document.getElementById('recruiterPct');
     const accountManager = document.getElementById('accountManager');
+    const accountManagerSplit = document.getElementById('accountManagerSplit');
+    const accountManagerPctEl = document.getElementById('accountManagerPct');
     const businessDev = document.getElementById('businessDev');
+    const businessDevSplit = document.getElementById('businessDevSplit');
+    const businessDevPctEl = document.getElementById('businessDevPct');
     const commissionEl = document.getElementById('commission');
     const breakdownEl = document.getElementById('breakdown');
     const shareBadge = document.getElementById('shareBadge');
@@ -187,9 +209,17 @@
     }
 
     function updateSplitEnabled(){
-      const enabled = recruiter.checked;
-      recruiterSplit.disabled = !enabled;
-      recruiterSplit.parentElement.style.opacity = enabled ? 1 : 0.6;
+      const rEnabled = recruiter.checked;
+      recruiterSplit.disabled = !rEnabled;
+      recruiterSplit.parentElement.style.opacity = rEnabled ? 1 : 0.6;
+
+      const aEnabled = accountManager.checked;
+      accountManagerSplit.disabled = !aEnabled;
+      accountManagerSplit.parentElement.style.opacity = aEnabled ? 1 : 0.6;
+
+      const bEnabled = businessDev.checked;
+      businessDevSplit.disabled = !bEnabled;
+      businessDevSplit.parentElement.style.opacity = bEnabled ? 1 : 0.6;
     }
 
     function compute(){
@@ -209,25 +239,30 @@
       }
 
       const rActive = recruiter.checked;
-      const a = accountManager.checked ? 1 : 0;
-      const b = businessDev.checked ? 1 : 0;
+      const aActive = accountManager.checked;
+      const bActive = businessDev.checked;
 
       const rWeight = rActive ? (recruiterSplit.checked ? 0.25 : 0.5) : 0;
-      recruiterPctEl.textContent = `${Math.round(rWeight*100)}%`;
+      const aWeight = aActive ? (accountManagerSplit.checked ? 0.125 : 0.25) : 0;
+      const bWeight = bActive ? (businessDevSplit.checked ? 0.125 : 0.25) : 0;
 
-      const weight = rWeight + 0.25*a + 0.25*b;
+      recruiterPctEl.textContent = `${Math.round(rWeight*100)}%`;
+      accountManagerPctEl.textContent = `${aActive ? Math.round(aWeight*100) + '%' : '25%'}`;
+      businessDevPctEl.textContent = `${bActive ? Math.round(bWeight*100) + '%' : '25%'}`;
+
+      const weight = rWeight + aWeight + bWeight;
       const commission = fee * salary * share * weight;
 
       commissionEl.textContent = fmtCurrency(commission);
 
       const pieces = [];
       if (rActive) pieces.push(`Recruiter ${Math.round(rWeight*100)}%`);
-      if (a) pieces.push('Account Manager 25%');
-      if (b) pieces.push('Business Development 25%');
+      if (aActive) pieces.push(`Account Manager ${Math.round(aWeight*100)}%`);
+      if (bActive) pieces.push(`Business Development ${Math.round(bWeight*100)}%`);
       breakdownEl.textContent = pieces.length ? `Weights active: ${pieces.join(' · ')}` : '';
     }
 
-    [recruiter, recruiterSplit, accountManager, businessDev, quantumFeeInput, ...shareRadios].forEach(el =>{
+    [recruiter, recruiterSplit, accountManager, accountManagerSplit, businessDev, businessDevSplit, quantumFeeInput, ...shareRadios].forEach(el =>{
       el.addEventListener('input', () => { updateSplitEnabled(); compute(); });
       el.addEventListener('change', () => { updateSplitEnabled(); compute(); });
     });
